@@ -7,6 +7,8 @@ from flask_debugtoolbar import DebugToolbarExtension
 
 from models import db, connect_db, Cafe, City
 
+from forms import AddCafeForm, EditCafeForm
+
 from sqlalchemy.exc import IntegrityError
 
 from secrets import FLASK_SECRET_KEY
@@ -91,3 +93,62 @@ def cafe_detail(cafe_id):
         'cafe/detail.html',
         cafe=cafe,
     )
+
+
+@app.route('/cafes/add', methods=["GET", "POST"])
+def add_cafe():
+    """Handle add_cafe form """
+    form = AddCafeForm()
+    # import pdb; pdb.set_trace()
+
+    form.city_code.choices = City.get_city_codes()
+
+    if form.validate_on_submit():
+        name = form.name.data
+        description = form.description.data
+        url = form.url.data
+        address = form.address.data
+        city_code = form.city_code.data
+        image_url = form.image_url.data
+
+        cafe = Cafe(name=name, 
+                    description=description, 
+                    url=url, 
+                    address=address, 
+                    city_code=city_code,
+                    image_url=image_url)
+
+        flash(f"{name} added!!")
+        db.session.add(cafe)
+        db.session.commit()
+
+        return redirect(f"/cafes/{cafe.id}")
+    
+    else:
+        return render_template("cafe/add-form.html", form=form)
+
+
+@app.route('/cafes/<int:cafe_id>/edit', methods=["GET", "POST"])
+def edit_cafe(cafe_id):
+    """Handle edit cafe form"""
+
+    cafe = Cafe.query.get_or_404(cafe_id)
+    
+    form = EditCafeForm(obj=cafe)
+    form.city_code.choices = City.get_city_codes()
+
+    if form.validate_on_submit():
+        cafe.name = form.name.data
+        cafe.description = form.description.data
+        cafe.url = form.url.data
+        cafe.address = form.address.data
+        cafe.city_code = form.city_code.data
+        cafe.image_url = form.image_url.data
+
+        flash(f"{cafe.name} edited")
+        db.session.commit()
+
+        return redirect(f"/cafes/{cafe.id}")
+
+    else:
+        return render_template("cafe/edit-form.html", form=form, name=cafe.name)
