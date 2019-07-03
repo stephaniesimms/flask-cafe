@@ -81,7 +81,7 @@ class Cafe(db.Model):
         return f'{city.name}, {city.state}'
 
 
-class User(db.model):
+class User(db.Model):
     """User information."""
 
     __tablename__ = 'users'
@@ -91,14 +91,11 @@ class User(db.model):
         primary_key=True,
     )
 
-    username = db.Column(
-               db.Text,
-               nullable=False
-    )
+    username = db.Column(db.Text, nullable=False, unique=True,)
 
     admin = db.Column(
-            db.Boolean, 
-            nullable=False)
+            db.Boolean,
+            nullable=False, default=False)
     
     email = db.Column(
             db.Text,
@@ -159,6 +156,7 @@ class User(db.model):
             return u
         else:
             return False
+
 
 def connect_db(app):
     """Connect this database to provided Flask app.

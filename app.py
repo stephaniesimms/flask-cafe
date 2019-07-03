@@ -5,9 +5,9 @@ from flask import Flask, render_template, request, flash
 from flask import redirect, session, g
 from flask_debugtoolbar import DebugToolbarExtension
 
-from models import db, connect_db, Cafe, City
+from models import db, connect_db, Cafe, City, User
 
-from forms import AddCafeForm, EditCafeForm
+from forms import AddCafeForm, EditCafeForm, SignupForm
 
 from sqlalchemy.exc import IntegrityError
 
@@ -28,11 +28,43 @@ connect_db(app)
 
 
 #######################################
-# auth & auth routes
+# signup form / add user route
+@app.route("/signup", methods=["GET", "POST"])
+def signup():
+    """Produce signup form and handle request to register new user"""
 
+    form = SignupForm()
+
+    # catch error to check for unique username before submitting form
+    if form.validate_on_submit():
+        username = form.username.data
+        first_name = form.first_name.data
+        last_name = form.last_name.data
+        description = form.description.data
+        email = form.email.data
+        pwd = form.password.data
+        image_url = form.image_url.data
+
+        # hashed_password = User.register(username, pwd)
+
+        user = User(username=username, first_name=first_name, 
+                    last_name=last_name, description=description, email=email, 
+                    hashed_password=pwd, image_url=image_url)
+
+        flash(f"You are signed up and logged in")
+        db.session.add(user)
+        db.session.commit()
+
+        return redirect("/cafes")
+    
+    else:
+        return render_template("auth/signup-form.html", form=form)
+
+
+#######################################
+# auth & auth routes
 CURR_USER_KEY = "curr_user"
 NOT_LOGGED_IN_MSG = "You are not logged in."
-
 
 # @app.before_request
 # def add_user_to_g():
@@ -99,7 +131,6 @@ def cafe_detail(cafe_id):
 def add_cafe():
     """Handle add_cafe form """
     form = AddCafeForm()
-    # import pdb; pdb.set_trace()
 
     form.city_code.choices = City.get_city_codes()
 
