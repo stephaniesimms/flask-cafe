@@ -1,13 +1,12 @@
 """Flask App for Flask Cafe."""
 
-
-from flask import Flask, render_template, request, flash
+from flask import Flask, render_template, flash
 from flask import redirect, session, g
 from flask_debugtoolbar import DebugToolbarExtension
 
 from models import db, connect_db, Cafe, City, User
 
-from forms import AddCafeForm, EditCafeForm, SignupForm
+from forms import AddCafeForm, EditCafeForm, SignupForm, LoginForm, EditUserForm
 
 from sqlalchemy.exc import IntegrityError
 
@@ -28,7 +27,35 @@ connect_db(app)
 
 
 #######################################
-# signup form / add user route
+# auth & auth routes
+
+
+CURR_USER_KEY = "curr_user"
+NOT_LOGGED_IN_MSG = "You are not logged in."
+
+
+@app.before_request
+def add_user_to_g():
+    """If we're logged in, add curr user to Flask global."""
+    if CURR_USER_KEY in session:
+        g.user = User.query.get(session[CURR_USER_KEY])
+    else:
+        g.user = None
+
+
+def do_login(user):
+    """Log in user."""
+
+    session[CURR_USER_KEY] = user.id
+
+
+def do_logout():
+    """Logout user."""
+
+    if CURR_USER_KEY in session:
+        del session[CURR_USER_KEY]
+
+
 @app.route("/signup", methods=["GET", "POST"])
 def signup():
     """Produce signup form and handle request to register new user"""
@@ -37,57 +64,66 @@ def signup():
 
     # catch error to check for unique username before submitting form
     if form.validate_on_submit():
-        username = form.username.data
-        first_name = form.first_name.data
-        last_name = form.last_name.data
-        description = form.description.data
-        email = form.email.data
-        pwd = form.password.data
-        image_url = form.image_url.data
+        try:
+            username = form.username.data
+            first_name = form.first_name.data
+            last_name = form.last_name.data
+            description = form.description.data
+            email = form.email.data
+            password = form.password.data
+            image_url = form.image_url.data
 
-        # hashed_password = User.register(username, pwd)
+            if not image_url:
+                image_url = None
 
-        user = User(username=username, first_name=first_name, 
-                    last_name=last_name, description=description, email=email, 
-                    hashed_password=pwd, image_url=image_url)
+            user = User.register(
+                username=username, first_name=first_name,
+                last_name=last_name, description=description,
+                email=email, password=password, image_url=image_url)
 
-        flash(f"You are signed up and logged in")
-        db.session.add(user)
-        db.session.commit()
+            db.session.add(user)
+            db.session.commit()
+            do_login(user)
+            flash("You are signed up and logged in.")
+
+        except IntegrityError:
+            flash("That username is taken. Try again.")
+            return render_template("auth/signup-form.html", form=form)
 
         return redirect("/cafes")
-    
+
     else:
         return render_template("auth/signup-form.html", form=form)
 
 
-#######################################
-# auth & auth routes
-CURR_USER_KEY = "curr_user"
-NOT_LOGGED_IN_MSG = "You are not logged in."
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    """Produce login form or handle login"""
+    form = LoginForm()
 
-# @app.before_request
-# def add_user_to_g():
-#     """If we're logged in, add curr user to Flask global."""
+    if form.validate_on_submit():
+        username = form.username.data
+        password = form.password.data
 
-#     if CURR_USER_KEY in session:
-#         g.user = User.query.get(session[CURR_USER_KEY])
+        user_authenticated = User.authenticate(
+            username=username, password=password)
 
-#     else:
-#         g.user = None
+        if user_authenticated:
+            do_login(user_authenticated)
+            flash(f"Hello, {username}!")
+            return redirect("/cafes")
+
+        else:
+            form.username.errors = ["Invalid credentials"]
+
+    return render_template("auth/login-form.html", form=form)
 
 
-# def do_login(user):
-#     """Log in user."""
-
-#     session[CURR_USER_KEY] = user.id
-
-
-# def do_logout():
-#     """Logout user."""
-
-#     if CURR_USER_KEY in session:
-#         del session[CURR_USER_KEY]
+@app.route("/logout", methods=["POST", "GET"])
+def logout():
+    do_logout()
+    flash("successfully logged out")
+    return redirect("/")
 
 
 #######################################
@@ -115,6 +151,7 @@ def cafe_list():
         cafes=cafes,
     )
 
+
 @app.route('/cafes/<int:cafe_id>')
 def cafe_detail(cafe_id):
     """Show detail for cafe."""
@@ -141,6 +178,9 @@ def add_cafe():
         address = form.address.data
         city_code = form.city_code.data
         image_url = form.image_url.data
+
+        if not image_url:
+            image_url = None
 
         cafe = Cafe(name=name, 
                     description=description, 
@@ -176,6 +216,9 @@ def edit_cafe(cafe_id):
         cafe.city_code = form.city_code.data
         cafe.image_url = form.image_url.data
 
+        if not cafe.image_url:
+            cafe.image_url = None
+
         flash(f"{cafe.name} edited")
         db.session.commit()
 
@@ -183,3 +226,43 @@ def edit_cafe(cafe_id):
 
     else:
         return render_template("cafe/edit-form.html", form=form, name=cafe.name)
+
+
+#######################################
+# display and edit profile routes
+
+@app.route('/profile/<int:user_id>')
+def display_profile(user_id):
+    """Displays current user profile if user is logged in"""
+  
+    if not g.user:
+        flash("NOT_LOGGED_IN")
+        return redirect("/login")
+   
+    user = User.query.get_or_404(user_id)
+
+    return render_template("profile/detail.html", user=user)
+
+
+@app.route('/profile/<int:user_id>/edit', methods=["POST", "GET"])
+def edit_user(user_id):
+    if not g.user:
+        flash("NOT_LOGGED_IN")
+        return redirect("/login")
+
+    user = User.query.get_or_404(user_id)
+    form = EditUserForm(obj=user)
+
+    if form.validate_on_submit():
+        form.populate_obj(user)
+    
+        flash(f"{user.first_name} edited")
+        db.session.commit()
+
+        return redirect(f"/profile/{user.id}")
+
+    else:
+        return render_template("profile/edit-form.html", form=form)
+
+
+
