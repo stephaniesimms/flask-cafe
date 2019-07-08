@@ -18,22 +18,29 @@
     <p><b>Username:</b> {{ user.username }} </p>
     <p><b>Email:</b> {{ user.email }} </p>
 
-    <ul>
-    {% for id in user.cafe_likes %}
-        <li>{{ id }}</li>
-    </ul>
-    {% endfor %}
-
-
-
-
-
-
     <p>
-      <a class="btn btn-outline-primary" href="/profile/{{user.id}}/edit">
-        Edit Your Profile
-      </a>
+        <a class="btn btn-outline-primary" href="/profile/edit">
+            Edit Your Profile
+        </a>
     </p>
+
+    {% with liked_cafes = user.liked_cafes %}
+    {% if liked_cafes %}
+    <h2 class="mt-5">Your Liked Cafes</h2>
+    
+    
+    <ul class="list-group">
+        {% for cafe in user.liked_cafes %}
+        <li class="list-group-item">
+            <a href="/cafes/{{ cafe.id }}">{{ cafe.name }}</a>
+            <small class="ml-2 text-muted">{{ cafe.city_state }}</small>
+        </li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <p class="mt-5 text-muted">You have no liked cafes.</p>
+    {% endif %}
+    {% endwith %}
 
   </div>
 

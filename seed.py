@@ -75,7 +75,7 @@ u1 = User.register(
     password="secret",
 )
 
-db.session.add_all([u1])
+db.session.add_all([u1, ua])
 db.session.commit()
 
 

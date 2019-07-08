@@ -1,10 +1,10 @@
 """Flask App for Flask Cafe."""
 
-from flask import Flask, render_template, flash
+from flask import Flask, render_template, flash, jsonify, request
 from flask import redirect, session, g
 from flask_debugtoolbar import DebugToolbarExtension
 
-from models import db, connect_db, Cafe, City, User
+from models import db, connect_db, Cafe, City, User, Like
 
 from forms import AddCafeForm, EditCafeForm, SignupForm, LoginForm, EditUserForm
 
@@ -84,10 +84,10 @@ def signup():
             db.session.add(user)
             db.session.commit()
             do_login(user)
-            flash("You are signed up and logged in.")
+            flash("You are signed up and logged in.", "success")
 
         except IntegrityError:
-            flash("That username is taken. Try again.")
+            flash("That username is taken. Try again.", "danger")
             return render_template("auth/signup-form.html", form=form)
 
         return redirect("/cafes")
@@ -110,7 +110,7 @@ def login():
 
         if user_authenticated:
             do_login(user_authenticated)
-            flash(f"Hello, {username}!")
+            flash(f"Hello, {username}", "success")
             return redirect("/cafes")
 
         else:
@@ -122,7 +122,7 @@ def login():
 @app.route("/logout", methods=["POST", "GET"])
 def logout():
     do_logout()
-    flash("successfully logged out")
+    flash("successfully logged out", "success")
     return redirect("/")
 
 
@@ -138,7 +138,6 @@ def homepage():
 
 #######################################
 # cafes
-
 
 @app.route('/cafes')
 def cafe_list():
@@ -166,7 +165,12 @@ def cafe_detail(cafe_id):
 
 @app.route('/cafes/add', methods=["GET", "POST"])
 def add_cafe():
-    """Handle add_cafe form """
+    """Handle add_cafe form. Only logged-in users can add/edit cafes."""
+    
+    if not g.user:
+        flash("Only logged-in users can add cafes.", "danger")
+        return redirect("/login")
+    
     form = AddCafeForm()
 
     form.city_code.choices = City.get_city_codes()
@@ -189,7 +193,7 @@ def add_cafe():
                     city_code=city_code,
                     image_url=image_url)
 
-        flash(f"{name} added!!")
+        flash(f"{name} added!", "success")
         db.session.add(cafe)
         db.session.commit()
 
@@ -201,68 +205,122 @@ def add_cafe():
 
 @app.route('/cafes/<int:cafe_id>/edit', methods=["GET", "POST"])
 def edit_cafe(cafe_id):
-    """Handle edit cafe form"""
+    """Handle edit cafe form. Only logged-in users can add/edit cafes."""
 
+    if not g.user:
+        flash("Only logged-in users can add cafes.", "danger")
+        return redirect("/login")
+    
     cafe = Cafe.query.get_or_404(cafe_id)
     
     form = EditCafeForm(obj=cafe)
     form.city_code.choices = City.get_city_codes()
 
     if form.validate_on_submit():
-        cafe.name = form.name.data
-        cafe.description = form.description.data
-        cafe.url = form.url.data
-        cafe.address = form.address.data
-        cafe.city_code = form.city_code.data
-        cafe.image_url = form.image_url.data
+        form.populate_obj(cafe)
 
         if not cafe.image_url:
             cafe.image_url = None
 
-        flash(f"{cafe.name} edited")
+        flash(f"{cafe.name} edited", "success")
         db.session.commit()
 
         return redirect(f"/cafes/{cafe.id}")
 
     else:
-        return render_template("cafe/edit-form.html", form=form, name=cafe.name)
+        return render_template("cafe/edit-form.html", form=form, cafe=cafe)
 
 
 #######################################
-# display and edit profile routes
+# display and edit user profiles
 
-@app.route('/profile/<int:user_id>')
-def display_profile(user_id):
-    """Displays current user profile if user is logged in"""
-  
+@app.route('/profile')
+def display_profile():
+    """Displays profile if user is logged in"""
+
     if not g.user:
-        flash("NOT_LOGGED_IN")
-        return redirect("/login")
-   
-    user = User.query.get_or_404(user_id)
-
-    return render_template("profile/detail.html", user=user)
-
-
-@app.route('/profile/<int:user_id>/edit', methods=["POST", "GET"])
-def edit_user(user_id):
-    if not g.user:
-        flash("NOT_LOGGED_IN")
+        flash(NOT_LOGGED_IN_MSG, "danger")
         return redirect("/login")
 
-    user = User.query.get_or_404(user_id)
-    form = EditUserForm(obj=user)
+    return render_template("profile/detail.html", user=g.user)
+
+
+@app.route('/profile/edit', methods=["GET", "POST"])
+def edit_user():
+    """Edit profile for user."""
+
+    if not g.user:
+        flash(NOT_LOGGED_IN_MSG, "danger")
+        return redirect("/login")
+
+    user = g.user
+
+    form = EditUserForm(obj=g.user)
 
     if form.validate_on_submit():
         form.populate_obj(user)
-    
-        flash(f"{user.first_name} edited")
+
         db.session.commit()
 
-        return redirect(f"/profile/{user.id}")
+        flash("Profile edited.", "success")
+        return redirect("/profile")
 
     else:
         return render_template("profile/edit-form.html", form=form)
 
+#######################################
+# API for likes
 
 
+@app.route("/api/likes")
+def likes_cafe():
+    """Does user like a cafe?"""
+
+    if not g.user:
+        return jsonify({"error": "Not logged in"})
+
+    cafe_id = int(request.args['cafe_id'])
+    cafe = Cafe.query.get_or_404(cafe_id)
+
+    like = Like.query.filter_by(user_id=g.user.id, cafe_id=cafe.id).first()
+    # likes = like is not None
+    if like is not None:
+        likes = True
+    else:
+        likes = False
+
+    return jsonify({"likes": likes})
+
+
+@app.route("/api/like", methods=["POST"])
+def like_cafe():
+    """Like a cafe"""
+
+    if not g.user:
+        return jsonify({"error": "Not logged in"})
+
+    cafe_id = int(request.json['cafe_id'])
+    cafe = Cafe.query.get_or_404(cafe_id)
+
+    g.user.liked_cafes.append(cafe)
+    db.session.commit()
+
+    response = {"liked": cafe.id}
+    return jsonify(response)
+
+
+@app.route("/api/unlike", methods=["POST"])
+def unlike_cafe():
+    """Unlike a cafe"""
+
+    if not g.user:
+        return jsonify({"error": "Not logged in"})
+
+    cafe_id = int(request.json['cafe_id'])
+    cafe = Cafe.query.get_or_404(cafe_id)
+
+    Like.query.filter_by(cafe_id=cafe_id, user_id=g.user.id).delete()
+    db.session.commit()
+
+    response = {"unliked": cafe.id}
+    return jsonify(response)

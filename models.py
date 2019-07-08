@@ -61,13 +61,13 @@ class User(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.Text, nullable=False, unique=True)
-    admin = db.Column(db.Boolean, default=False)
+    admin = db.Column(db.Boolean, nullable=False, default=False)
     email = db.Column(db.Text, nullable=False)
     first_name = db.Column(db.Text, nullable=False)
     last_name = db.Column(db.Text, nullable=False)
     description = db.Column(db.Text, nullable=False)
     image_url = db.Column(
-        db.Text, default="/static/images/default-pic.png")
+        db.Text, nullable=False, default="/static/images/default-pic.png")
     hashed_password = db.Column(db.Text, nullable=False)
  
     liked_cafes = db.relationship('Cafe', secondary='likes')
