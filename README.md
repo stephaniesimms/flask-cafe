@@ -31,7 +31,7 @@ python seed.py
 flask run
 ```   
 
-## Testing
+## Running Tests
 
 1. Create test database:
  
