@@ -6,7 +6,7 @@ from flask_debugtoolbar import DebugToolbarExtension
 
 from models import db, connect_db, Cafe, City, User, Like
 
-from forms import AddCafeForm, EditCafeForm
+from forms import CafeAddEditForm
 from forms import SignupForm, LoginForm, EditUserForm
 
 from sqlalchemy.exc import IntegrityError
@@ -180,7 +180,7 @@ def add_cafe():
         flash("Only logged-in users can add cafes.", "danger")
         return redirect("/login")
     
-    form = AddCafeForm()
+    form = CafeAddEditForm()
 
     form.city_code.choices = City.get_city_codes()
 
@@ -222,7 +222,7 @@ def edit_cafe(cafe_id):
 
     cafe = Cafe.query.get_or_404(cafe_id)
 
-    form = EditCafeForm(obj=cafe)
+    form = CafeAddEditForm(obj=cafe)
     form.city_code.choices = City.get_city_codes()
 
     if form.validate_on_submit():
