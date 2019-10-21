@@ -82,9 +82,14 @@ def signup():
                 image_url = None
 
             user = User.register(
-                username=username, first_name=first_name,
-                last_name=last_name, description=description,
-                email=email, password=password, image_url=image_url)
+                username=username,
+                first_name=first_name,
+                last_name=last_name,
+                description=description,
+                email=email,
+                password=password,
+                image_url=image_url
+            )
 
             db.session.add(user)
             db.session.commit()
@@ -113,7 +118,9 @@ def login():
         password = form.password.data
 
         user_authenticated = User.authenticate(
-            username=username, password=password)
+            username=username,
+            password=password
+        )
 
         if user_authenticated:
             do_login(user_authenticated)
@@ -157,6 +164,7 @@ def cafe_list():
     return render_template(
         'cafe/list.html',
         cafes=cafes,
+        can_add=g.user and g.user.admin
     )
 
 
