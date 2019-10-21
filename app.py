@@ -195,10 +195,10 @@ def add_cafe():
         if not image_url:
             image_url = None
 
-        cafe = Cafe(name=name, 
-                    description=description, 
-                    url=url, 
-                    address=address, 
+        cafe = Cafe(name=name,
+                    description=description,
+                    url=url,
+                    address=address,
                     city_code=city_code,
                     image_url=image_url)
 
@@ -207,7 +207,7 @@ def add_cafe():
         db.session.commit()
 
         return redirect(f"/cafes/{cafe.id}")
-    
+
     else:
         return render_template("cafe/add-form.html", form=form)
 
@@ -217,11 +217,11 @@ def edit_cafe(cafe_id):
     """Handle edit cafe form. Only logged-in users can add/edit cafes."""
 
     if not g.user:
-        flash("Only logged-in users can add cafes.", "danger")
+        flash("Only logged-in users can edit cafes.", "danger")
         return redirect("/login")
-    
+
     cafe = Cafe.query.get_or_404(cafe_id)
-    
+
     form = EditCafeForm(obj=cafe)
     form.city_code.choices = City.get_city_codes()
 
@@ -292,11 +292,7 @@ def likes_cafe():
     cafe = Cafe.query.get_or_404(cafe_id)
 
     like = Like.query.filter_by(user_id=g.user.id, cafe_id=cafe.id).first()
-    # likes = like is not None
-    if like is not None:
-        likes = True
-    else:
-        likes = False
+    likes = like is not None
 
     return jsonify({"likes": likes})
 
