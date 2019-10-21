@@ -99,15 +99,15 @@ TEST_USER_DATA_NEW = dict(
     image_url="http://new-image.com",
 )
 
-# ADMIN_USER_DATA = dict(
-#     username="admin",
-#     first_name="Addie",
-#     last_name="MacAdmin",
-#     description="Admin Description.",
-#     email="admin@test.com",
-#     password="secret",
-#     admin=True,
-# )
+ADMIN_USER_DATA = dict(
+    username="admin",
+    first_name="Addie",
+    last_name="MacAdmin",
+    description="Admin Description.",
+    email="admin@test.com",
+    password="secret",
+    admin=True,
+)
 
 
 #######################################
@@ -626,3 +626,45 @@ class LikeViewsTestCase(TestCase):
             resp = client.get(f"/profile", follow_redirects=True)
             self.assertNotIn(b'have no liked cafes', resp.data)
             self.assertIn(b'Test Cafe', resp.data)
+
+    def test_api_likes(self):
+        like = Like(user_id=self.user_id, cafe_id=self.cafe_id)
+        db.session.add(like)
+        db.session.commit()
+
+        with app.test_client() as client:
+            resp = client.get(f"/api/likes?cafe_id={self.cafe_id}")
+            self.assertEqual(resp.json, {"error": "Not logged in"})
+
+            do_login(client, self.user_id)
+
+            resp = client.get(f"/api/likes?cafe_id={self.cafe_id}")
+            self.assertEqual(resp.json, {"likes": True})
+
+    def test_api_like(self):
+        data = {"cafe_id": self.cafe_id}
+
+        with app.test_client() as client:
+            resp = client.post(f"/api/like", json=data)
+            self.assertEqual(resp.json, {"error": "Not logged in"})
+
+            do_login(client, self.user_id)
+
+            resp = client.post(f"/api/like", json=data)
+            self.assertEqual(resp.json, {"liked": self.cafe_id})
+
+    def test_api_unlike(self):
+        like = Like(user_id=self.user_id, cafe_id=self.cafe_id)
+        db.session.add(like)
+        db.session.commit()
+
+        data = {"cafe_id": self.cafe_id}
+
+        with app.test_client() as client:
+            resp = client.post(f"/api/unlike", json=data)
+            self.assertEqual(resp.json, {"error": "Not logged in"})
+
+            do_login(client, self.user_id)
+
+            resp = client.post(f"/api/unlike", json=data)
+            self.assertEqual(resp.json, {"unliked": self.cafe_id})

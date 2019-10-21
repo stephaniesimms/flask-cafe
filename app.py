@@ -82,9 +82,14 @@ def signup():
                 image_url = None
 
             user = User.register(
-                username=username, first_name=first_name,
-                last_name=last_name, description=description,
-                email=email, password=password, image_url=image_url)
+                username=username,
+                first_name=first_name,
+                last_name=last_name,
+                description=description,
+                email=email,
+                password=password,
+                image_url=image_url
+            )
 
             db.session.add(user)
             db.session.commit()
@@ -113,7 +118,9 @@ def login():
         password = form.password.data
 
         user_authenticated = User.authenticate(
-            username=username, password=password)
+            username=username,
+            password=password
+        )
 
         if user_authenticated:
             do_login(user_authenticated)
@@ -157,6 +164,7 @@ def cafe_list():
     return render_template(
         'cafe/list.html',
         cafes=cafes,
+        can_add=g.user and g.user.admin
     )
 
 
@@ -166,20 +174,28 @@ def cafe_detail(cafe_id):
 
     cafe = Cafe.query.get_or_404(cafe_id)
 
+    if g.user:
+        liked = g.user in cafe.liking_users
+    else:
+        liked = None
+
     return render_template(
         'cafe/detail.html',
         cafe=cafe,
+        show_edit=g.user and g.user.admin,
+        liked=liked
     )
 
 
 @app.route('/cafes/add', methods=["GET", "POST"])
 def add_cafe():
-    """Handle add_cafe form. Only logged-in users can add/edit cafes."""
-    
-    if not g.user:
-        flash("Only logged-in users can add cafes.", "danger")
+    """Handle add_cafe form.
+    Only logged-in admin users can add/edit cafes."""
+
+    if not g.user or not g.user.admin:
+        flash("Only admins can add cafes.", "danger")
         return redirect("/login")
-    
+
     form = CafeAddEditForm()
 
     form.city_code.choices = City.get_city_codes()
@@ -214,10 +230,11 @@ def add_cafe():
 
 @app.route('/cafes/<int:cafe_id>/edit', methods=["GET", "POST"])
 def edit_cafe(cafe_id):
-    """Handle edit cafe form. Only logged-in users can add/edit cafes."""
+    """Handle edit cafe form.
+    Only logged-in admin users can add/edit cafes."""
 
-    if not g.user:
-        flash("Only logged-in users can edit cafes.", "danger")
+    if not g.user or not g.user.admin:
+        flash("Only admins can edit cafes.", "danger")
         return redirect("/login")
 
     cafe = Cafe.query.get_or_404(cafe_id)
