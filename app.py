@@ -174,9 +174,16 @@ def cafe_detail(cafe_id):
 
     cafe = Cafe.query.get_or_404(cafe_id)
 
+    if g.user:
+        liked = g.user in cafe.liking_users
+    else:
+        liked = None
+
     return render_template(
         'cafe/detail.html',
         cafe=cafe,
+        show_edit=g.user and g.user.admin,
+        liked=liked
     )
 
 

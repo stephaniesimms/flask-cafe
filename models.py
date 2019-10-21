@@ -49,7 +49,11 @@ class Cafe(db.Model):
 
     city = db.relationship('City', backref='cafes')
 
-    liking_users = db.relationship('User', secondary='likes')
+    liking_users = db.relationship(
+        'User',
+        secondary='likes',
+        backref='liked_cafes'
+    )
 
     def __repr__(self):
         return f'<Cafe id={self.id} name="{self.name}">'
@@ -79,8 +83,6 @@ class User(db.Model):
         default="/static/images/default-pic.png"
     )
     hashed_password = db.Column(db.Text, nullable=False)
-
-    liked_cafes = db.relationship('Cafe', secondary='likes')
 
     def __repr__(self):
         return f'<User id={self.id} username="{self.username}">'
@@ -143,6 +145,9 @@ class Like(db.Model):
             db.Integer, db.ForeignKey('users.id'), primary_key=True)
     cafe_id = db.Column(
             db.Integer, db.ForeignKey('cafes.id'), primary_key=True)
+
+    user = db.relationship('User', backref='likes')
+    cafe = db.relationship('Cafe', backref='cafes')
 
 
 def connect_db(app):

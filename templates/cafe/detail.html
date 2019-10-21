@@ -44,11 +44,13 @@
       {{ cafe.get_city_state() }}<br>
     </p>
 
+    {% if show_edit %}
     <p>
       <a class="btn btn-outline-primary" href="/cafes/{{ cafe.id }}/edit">
         Edit Cafe
       </a>
     </p>
+    {% endif %}
 
   </div>
 
