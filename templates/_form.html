@@ -6,6 +6,7 @@
   {{ field.label }}
   {{ field(class="form-control") }}
 
+  <!-- display any errors in red alert banner -->
   <span>
     {% if field.errors %}
     {% for error in field.errors %}
