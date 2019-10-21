@@ -17,12 +17,13 @@ class City(db.Model):
     state = db.Column(db.String(2), nullable=False)
 
     def __repr__(self):
-        return f'<City code={self.code}, name={self.name},state={self.state}>'
+        return f'<City code={self.code}, name={self.name}, state={self.state}>'
 
-    @classmethod 
+    @classmethod
     def get_city_codes(cls):
         """Get a list of city codes"""
-        return [(city.code, city.name) for city in City.query.all()]
+
+        return [(city.code, city.name) for city in City.query.order_by('name').all()]
 
 
 class Cafe(db.Model):
