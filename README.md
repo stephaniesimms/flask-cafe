@@ -11,25 +11,30 @@ It focuses on:
 
 ## Installation
 
-1. Make a virtual environment and add the project dependencies: 
+1. Clone this repository and cd into the flask-cafe folder. NOTE: removed secrets.py from .gitignore in order to access FLASK_SECRET_KEY variable and run demo.
+
+2. Make a virtual environment, install Flask, and add the project dependencies: 
  
 ```
-mkvirtualenv flask-cafe       
+python3 -m venv venv
+source venv/bin/activate
+pip install flask
 pip install -r requirements.txt
 ```
 
-2. Setup and seed the database: 
+3. Setup and seed the database: 
 
 ```
 createdb flaskcafe    
 python seed.py
 ```
 
-3. Start the server:  
+4. Start the server:  
 
 ```
 flask run
 ```   
+This will run the app on http://127.0.0.1:5000/ 
 
 ## Running Tests
 
