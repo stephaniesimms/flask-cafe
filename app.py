@@ -6,7 +6,8 @@ from flask_debugtoolbar import DebugToolbarExtension
 
 from models import db, connect_db, Cafe, City, User, Like
 
-from forms import AddCafeForm, EditCafeForm, SignupForm, LoginForm, EditUserForm
+from forms import AddCafeForm, EditCafeForm
+from forms import SignupForm, LoginForm, EditUserForm
 
 from sqlalchemy.exc import IntegrityError
 
@@ -36,7 +37,7 @@ NOT_LOGGED_IN_MSG = "You are not logged in."
 
 @app.before_request
 def add_user_to_g():
-    """If we're logged in, add curr user to Flask global."""
+    """If logged in, add curr user to Flask global."""
     if CURR_USER_KEY in session:
         g.user = User.query.get(session[CURR_USER_KEY])
     else:
@@ -58,11 +59,15 @@ def do_logout():
 
 @app.route("/signup", methods=["GET", "POST"])
 def signup():
-    """Produce signup form and handle request to register new user"""
+    """Display signup form and handle request to register new user.
+    Redirect to cafes list.
+
+    If there is already a user with that username:
+    flash message and display form again.
+    """
 
     form = SignupForm()
 
-    # catch error to check for unique username before submitting form
     if form.validate_on_submit():
         try:
             username = form.username.data
@@ -98,7 +103,9 @@ def signup():
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
-    """Produce login form or handle login"""
+    """Produce login form or handle login.
+    Redirects to cafes list on successful login.
+    """
     form = LoginForm()
 
     if form.validate_on_submit():
@@ -121,6 +128,8 @@ def login():
 
 @app.route("/logout", methods=["POST", "GET"])
 def logout():
+    """Handle user logout. Redirects to homepage."""
+
     do_logout()
     flash("successfully logged out", "success")
     return redirect("/")
