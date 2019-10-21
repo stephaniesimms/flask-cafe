@@ -126,7 +126,7 @@ class User(db.Model):
         Return user if valid; else return False.
         """
         u = User.query.filter_by(username=username).first()
-        
+
         if u and bcrypt.check_password_hash(u.hashed_password, password):
             # return user instance
             return u

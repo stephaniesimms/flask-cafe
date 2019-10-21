@@ -4,7 +4,6 @@
 import re
 from unittest import TestCase
 
-# from flask import session
 from app import app, CURR_USER_KEY
 from models import db, Cafe, City, User, Like
 from flask import session
@@ -154,8 +153,9 @@ class CityModelTestCase(TestCase):
         City.query.delete()
         db.session.commit()
 
-    # depending on how you solve exercise, you may have things to test on
-    # the City model, so here's a good place to put that stuff.
+    def test_city_codes(self):
+        codes = City.get_city_codes()
+        self.assertEqual(codes, [('sf', 'San Francisco')])
 
 
 #######################################
