@@ -189,12 +189,13 @@ def cafe_detail(cafe_id):
 
 @app.route('/cafes/add', methods=["GET", "POST"])
 def add_cafe():
-    """Handle add_cafe form. Only logged-in users can add/edit cafes."""
-    
-    if not g.user:
-        flash("Only logged-in users can add cafes.", "danger")
+    """Handle add_cafe form.
+    Only logged-in admin users can add/edit cafes."""
+
+    if not g.user or not g.user.admin:
+        flash("Only admins can add cafes.", "danger")
         return redirect("/login")
-    
+
     form = CafeAddEditForm()
 
     form.city_code.choices = City.get_city_codes()
@@ -229,10 +230,11 @@ def add_cafe():
 
 @app.route('/cafes/<int:cafe_id>/edit', methods=["GET", "POST"])
 def edit_cafe(cafe_id):
-    """Handle edit cafe form. Only logged-in users can add/edit cafes."""
+    """Handle edit cafe form.
+    Only logged-in admin users can add/edit cafes."""
 
-    if not g.user:
-        flash("Only logged-in users can edit cafes.", "danger")
+    if not g.user or not g.user.admin:
+        flash("Only admins can edit cafes.", "danger")
         return redirect("/login")
 
     cafe = Cafe.query.get_or_404(cafe_id)
