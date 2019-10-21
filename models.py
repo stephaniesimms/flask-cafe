@@ -36,12 +36,18 @@ class Cafe(db.Model):
     description = db.Column(db.Text, nullable=False)
     url = db.Column(db.Text, nullable=False)
     address = db.Column(db.Text, nullable=False)
-    city_code = db.Column(db.Text, db.ForeignKey(
-                'cities.code'), nullable=False)
+    city_code = db.Column(
+        db.Text,
+        db.ForeignKey('cities.code'),
+        nullable=False
+    )
     image_url = db.Column(
-                db.Text, nullable=False,
-                default="/static/images/default-cafe.jpg")
-    city = db.relationship("City", backref='cafes')
+        db.Text,
+        nullable=False,
+        default="/static/images/default-cafe.jpg"
+    )
+
+    city = db.relationship('City', backref='cafes')
 
     liking_users = db.relationship('User', secondary='likes')
 
@@ -68,32 +74,50 @@ class User(db.Model):
     last_name = db.Column(db.Text, nullable=False)
     description = db.Column(db.Text, nullable=False)
     image_url = db.Column(
-        db.Text, nullable=False, default="/static/images/default-pic.png")
+        db.Text,
+        nullable=False,
+        default="/static/images/default-pic.png"
+    )
     hashed_password = db.Column(db.Text, nullable=False)
- 
+
     liked_cafes = db.relationship('Cafe', secondary='likes')
+
+    def __repr__(self):
+        return f'<User id={self.id} username="{self.username}">'
 
     def get_full_name(self):
         """Return full name of user"""
+
         return f"{self.first_name} {self.last_name}"
-    
+
     @classmethod
-    def register(
-        cls, username, email, first_name, last_name, description, 
-            password, image_url=None, admin=False):
+    def register(cls,
+                 username,
+                 email,
+                 first_name,
+                 last_name,
+                 description,
+                 password,
+                 admin=False,
+                 image_url=None):
         """Register user with hashed password."""
 
         hashed = bcrypt.generate_password_hash(password)
         # turn bytestring into normal (unicode utf8) string
         hashed_utf8 = hashed.decode("utf8")
 
-        # return instance of user w/username and hashed password
         user = cls(
-                username=username, admin=admin, email=email, 
-                first_name=first_name, last_name=last_name, 
-                description=description, hashed_password=hashed_utf8,
-                image_url=image_url)
-        
+            username=username,
+            admin=admin,
+            email=email,
+            first_name=first_name,
+            last_name=last_name,
+            description=description,
+            hashed_password=hashed_utf8,
+            image_url=image_url,
+        )
+
+        db.session.add(user)
         return user
 
     @classmethod
