@@ -1,1 +1,5 @@
-secrets.py
+# Commented out secrets.py file to enable demo to run smoothly.
+# For a real app proper security practices require secret keys 
+# to be stored in this manner.
+
+# secrets.py
