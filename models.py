@@ -71,7 +71,7 @@ class Cafe(db.Model):
         """Save map for this cafe."""
 
         save_map(self.id, self.address, self.city.name, self.city.state)
-        
+
 
 class User(db.Model):
     """User information."""
