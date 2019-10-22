@@ -192,7 +192,7 @@ def add_cafe():
     """Handle add_cafe form.
     Only logged-in admin users can add/edit cafes."""
 
-    if not g.user or not g.user.admin:
+    if g.user or not g.user.admin:
         flash("Only admins can add cafes.", "danger")
         return redirect("/login")
 
@@ -247,15 +247,27 @@ def edit_cafe(cafe_id):
     form.city_code.choices = City.get_city_codes()
 
     if form.validate_on_submit():
-        form.populate_obj(cafe)
+        need_new_map = (
+                cafe.address != form.address.data or
+                cafe.city_code != form.city_code.data
+        )
+
+        cafe.name = form.name.data
+        cafe.description = form.description.data
+        cafe.url = form.url.data
+        cafe.address = form.address.data
+        cafe.city_code = form.city_code.data
+        cafe.image_url = form.image_url.data or None
+
+        if need_new_map:
+            cafe.save_map()
 
         # if the image_url is empty, then set the default again
         if not cafe.image_url:
             cafe.image_url = Cafe._default_img
 
-        flash(f"{cafe.name} edited", "success")
         db.session.commit()
-
+        flash(f"{cafe.name} edited", "success")
         return redirect(f"/cafes/{cafe.id}")
 
     else:
