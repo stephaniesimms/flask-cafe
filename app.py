@@ -27,6 +27,12 @@ toolbar = DebugToolbarExtension(app)
 connect_db(app)
 
 
+@app.errorhandler(404)
+def page_not_found(e):
+    """Return 404 page."""
+
+    return render_template('404.html'), 404
+
 #######################################
 # auth & auth routes
 
