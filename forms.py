@@ -13,7 +13,7 @@ class CafeAddEditForm(FlaskForm):
     url = StringField("URL", validators=[Optional(), URL()])
     address = StringField("Address", validators=[InputRequired()])
     city_code = SelectField("City")
-    image_url = StringField("Image URL", validators=[Optional(), URL()])
+    image_url = StringField("Image URL (optional)", validators=[Optional(), URL()])
 
 
 class SignupForm(FlaskForm):
@@ -42,4 +42,4 @@ class EditUserForm(FlaskForm):
     last_name = StringField("Last name", validators=[InputRequired()])
     description = TextAreaField("Description", validators=[Optional()])
     email = StringField("Email", validators=[InputRequired(), Email()])
-    image_url = StringField("(Optional) Image URL")
+    image_url = StringField("Image URL (optional)", validators=[Optional(), URL()])
