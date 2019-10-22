@@ -31,8 +31,8 @@ db.session.commit()
 
 c1 = Cafe(
     name="Bernie's Cafe",
-    description='Serving locals in Noe Valley. A great place to sit and write'
-        ' and write Rithm exercises.',
+    description='Serving locals in Noe Valley. A great place to sit and code'
+        ' and code.',
     address="3966 24th St",
     city_code='sf',
     url='https://www.yelp.com/biz/bernies-san-francisco',
@@ -49,7 +49,26 @@ c2 = Cafe(
     image_url='https://s3-media4.fl.yelpcdn.com/bphoto/0vhzcgkzIUIEPIyL2rF_YQ/o.jpg',
 )
 
-db.session.add_all([c1, c2])
+c3 = Cafe(
+    name='Cafe du Soleil',
+    description='Pastries, Parisian-inspired fare, coffee and wine served'
+        ' in a corner bistro with sidewalk tables.',
+    address='200 Fillmore St',
+    city_code='sf',
+    url='http://cafe-du-soleil.cafes-city.com/',
+    image_url='https://s3-media2.fl.yelpcdn.com/bphoto/l6oeG-xz1sJ5PWDJEG-zHg/o.jpg',
+)
+
+c4 = Cafe(
+    name='Victory Point Cafe',
+    description="Berkeley's board game cafe",
+    address='1797 Shattuck Ave',
+    city_code='berk',
+    url='https://www.victorypointcafe.com/',
+    image_url='https://s3-media1.fl.yelpcdn.com/bphoto/oZHI0cmzCnUDMP7WPAjEEw/o.jpg',
+)
+
+db.session.add_all([c1, c2, c3, c4])
 db.session.commit()
 
 
@@ -92,7 +111,9 @@ db.session.commit()
 #######################################
 # cafe maps
 
-# c1.save_map()
-# c2.save_map()
-#
+c1.save_map()
+c2.save_map()
+c3.save_map()
+c4.save_map()
+
 #db.session.commit()
