@@ -32,7 +32,7 @@ python seed.py
 4. Start the server:  
 
 ```
-FLASK_SECRET_KEY=oh-so-secret flask run
+flask run
 ```   
 This will run the app on http://127.0.0.1:5000/ 
 

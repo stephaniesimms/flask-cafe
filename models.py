@@ -69,6 +69,7 @@ class Cafe(db.Model):
 class User(db.Model):
     """User information."""
 
+    _default_img = "/static/images/default-pic.png"
     __tablename__ = 'users'
 
     id = db.Column(db.Integer, primary_key=True)
@@ -81,7 +82,7 @@ class User(db.Model):
     image_url = db.Column(
         db.Text,
         nullable=False,
-        default="/static/images/default-pic.png"
+        default=_default_img
     )
     hashed_password = db.Column(db.Text, nullable=False)
 

@@ -233,15 +233,14 @@ def edit_cafe(cafe_id):
     """Handle edit cafe form.
     Only logged-in admin users can add/edit cafes."""
 
-    # equivalent to "not (g.user and g.user.admin)
-    # this is because of the the distributive law of boolean logic
     if not g.user or not g.user.admin:
         flash("Only admins can edit cafes.", "danger")
         return redirect("/login")
 
     cafe = Cafe.query.get_or_404(cafe_id)
 
-    # Make sure we do not display the static value of the default image
+    # Do not display the static value of the default image
+    # This will throw an error with the URL validator in wtforms
     if cafe.image_url == Cafe._default_img:
         cafe.image_url = ''
 
@@ -251,7 +250,7 @@ def edit_cafe(cafe_id):
     if form.validate_on_submit():
         form.populate_obj(cafe)
 
-        # if the image_url is empty, then we need to set the default again.
+        # if the image_url is empty, then set the default again
         if not cafe.image_url:
             cafe.image_url = Cafe._default_img
 
@@ -288,10 +287,19 @@ def edit_user():
 
     user = g.user
 
-    form = EditUserForm(obj=g.user)
+    # Do not display the static value of the default image
+    # This will throw an error with the URL validator in wtforms
+    if user.image_url == User._default_img:
+        user.image_url = ''
+
+    form = EditUserForm(obj=user)
 
     if form.validate_on_submit():
         form.populate_obj(user)
+
+        # if the image_url is empty, then set the default again
+        if not user.image_url:
+            user.image_url = User._default_img
 
         db.session.commit()
 
@@ -353,3 +361,7 @@ def unlike_cafe():
 
     response = {"unliked": cafe.id}
     return jsonify(response)
+
+
+if __name__ == '__main__':
+    app.run(debug=True, use_debugger=False, use_reloader=False, passthrough_errors=True)
