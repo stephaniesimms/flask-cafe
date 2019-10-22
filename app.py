@@ -198,7 +198,7 @@ def add_cafe():
     """Handle add_cafe form.
     Only logged-in admin users can add/edit cafes."""
 
-    if not g.user or not g.user.admin:
+    if g.user or not g.user.admin:
         flash("Only admins can add cafes.", "danger")
         return redirect("/login")
 
@@ -207,27 +207,26 @@ def add_cafe():
     form.city_code.choices = City.get_city_codes()
 
     if form.validate_on_submit():
-        name = form.name.data
-        description = form.description.data
-        url = form.url.data
-        address = form.address.data
-        city_code = form.city_code.data
-        image_url = form.image_url.data
+        cafe = Cafe(
+            name=form.name.data,
+            description=form.description.data,
+            url=form.url.data,
+            address=form.address.data,
+            city_code=form.city_code.data,
+            image_url=form.image_url.data or None,
+        )
 
-        if not image_url:
-            image_url = None
-
-        cafe = Cafe(name=name,
-                    description=description,
-                    url=url,
-                    address=address,
-                    city_code=city_code,
-                    image_url=image_url)
-
-        flash(f"{name} added!", "success")
         db.session.add(cafe)
+
+        # In order to run save_map, we need to make sure the cafe has been
+        # given an ID, so we need the database to "flush" --- this runs the
+        # SQL [so postgres gives it an id] but doesn't commit the transaction
+        db.session.flush()
+        cafe.save_map()
+
         db.session.commit()
 
+        flash(f"{cafe.name} added!", "success")
         return redirect(f"/cafes/{cafe.id}")
 
     else:
@@ -254,15 +253,27 @@ def edit_cafe(cafe_id):
     form.city_code.choices = City.get_city_codes()
 
     if form.validate_on_submit():
-        form.populate_obj(cafe)
+        need_new_map = (
+                cafe.address != form.address.data or
+                cafe.city_code != form.city_code.data
+        )
+
+        cafe.name = form.name.data
+        cafe.description = form.description.data
+        cafe.url = form.url.data
+        cafe.address = form.address.data
+        cafe.city_code = form.city_code.data
+        cafe.image_url = form.image_url.data or None
+
+        if need_new_map:
+            cafe.save_map()
 
         # if the image_url is empty, then set the default again
         if not cafe.image_url:
             cafe.image_url = Cafe._default_img
 
-        flash(f"{cafe.name} edited", "success")
         db.session.commit()
-
+        flash(f"{cafe.name} edited", "success")
         return redirect(f"/cafes/{cafe.id}")
 
     else:

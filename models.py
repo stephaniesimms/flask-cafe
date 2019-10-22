@@ -3,6 +3,8 @@
 from flask_bcrypt import Bcrypt
 from flask_sqlalchemy import SQLAlchemy
 
+from mapping import save_map
+
 bcrypt = Bcrypt()
 db = SQLAlchemy()
 
@@ -64,6 +66,11 @@ class Cafe(db.Model):
 
         city = self.city
         return f'{city.name}, {city.state}'
+
+    def save_map(self):
+        """Save map for this cafe."""
+
+        save_map(self.id, self.address, self.city.name, self.city.state)
 
 
 class User(db.Model):
