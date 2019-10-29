@@ -10,9 +10,11 @@ from forms import SignupForm, LoginForm, EditUserForm
 
 from sqlalchemy.exc import IntegrityError
 
+from config import DATABASE_URL
+
 app = Flask(__name__)
 
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgres:///flaskcafe'
+app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_ECHO'] = True
 
