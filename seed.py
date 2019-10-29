@@ -1,11 +1,11 @@
 """Initial data."""
-
+from config import DATABASE_URL
 from models import City, Cafe, User, db, connect_db
 from flask import Flask
 
 app = Flask(__name__)
 
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgres:///flaskcafe'
+app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_ECHO'] = True
 
@@ -52,7 +52,7 @@ c2 = Cafe(
 c3 = Cafe(
     name='Cafe du Soleil',
     description='Pastries, Parisian-inspired fare, coffee and wine served'
-        ' in a corner bistro with sidewalk tables.',
+        ' in a corner bistro.',
     address='200 Fillmore St',
     city_code='sf',
     url='http://cafe-du-soleil.cafes-city.com/',
@@ -61,7 +61,7 @@ c3 = Cafe(
 
 c4 = Cafe(
     name='Victory Point Cafe',
-    description="Berkeley's board game cafe",
+    description="Berkeley's board game cafe plus craft coffee and beer.",
     address='1797 Shattuck Ave',
     city_code='berk',
     url='https://www.victorypointcafe.com/',

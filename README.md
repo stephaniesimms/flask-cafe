@@ -11,10 +11,10 @@ It focuses on:
 
 ## Installation
 
-1. Clone this repository and cd into the flask-cafe folder. NOTE: removed secrets.py from .gitignore in order to access FLASK_SECRET_KEY variable and run demo.
+1. Clone this repository and cd into the flask-cafe folder. In order to make the MapQuest API work you need to set an environment variable `MAPQUEST_API_KEY=<your-key>`
 
 2. Make a virtual environment, install Flask, and add the project dependencies: 
- 
+
 ```
 python3 -m venv venv
 source venv/bin/activate
@@ -29,10 +29,15 @@ createdb flaskcafe
 python seed.py
 ```
 
+Seed the DB on Heroku
+```
+DATABASE_URL=$(heroku config:get DATABASE_URL -a stephaniesimms-flask-cafe) python seed.py
+```
+
 4. Start the server:  
 
 ```
-flask run
+MAPQUEST_API_KEY=<your-key> flask run
 ```   
 This will run the app on http://127.0.0.1:5000/ 
 

@@ -3,13 +3,13 @@
 import requests
 import os
 
-from secret import MAPQUEST_API_KEY as API_KEY
+from config import MAPQUEST_API_KEY
 
 
 def get_map_url(address, city, state):
     """Get MapQuest URL for a static map for this location"""
 
-    base = f"https://www.mapquestapi.com/staticmap/v5/map?key={API_KEY}"
+    base = f"https://www.mapquestapi.com/staticmap/v5/map?key={MAPQUEST_API_KEY}"
     where = f"{address},{city},{state}"
     return f"{base}&center={where}&size=@2x&zoom=15&locations={where}"
 

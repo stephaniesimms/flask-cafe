@@ -2,7 +2,6 @@
 
 from flask import Flask, render_template, flash, jsonify, request
 from flask import redirect, session, g
-from flask_debugtoolbar import DebugToolbarExtension
 
 from models import db, connect_db, Cafe, City, User, Like
 
@@ -11,18 +10,11 @@ from forms import SignupForm, LoginForm, EditUserForm
 
 from sqlalchemy.exc import IntegrityError
 
-from secrets import FLASK_SECRET_KEY
-
-
 app = Flask(__name__)
 
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgres:///flaskcafe'
-app.config['SECRET_KEY'] = FLASK_SECRET_KEY
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_ECHO'] = True
-app.config['DEBUG_TB_INTERCEPT_REDIRECTS'] = True
-
-toolbar = DebugToolbarExtension(app)
 
 connect_db(app)
 
