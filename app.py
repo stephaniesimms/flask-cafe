@@ -10,11 +10,14 @@ from forms import SignupForm, LoginForm, EditUserForm
 
 from sqlalchemy.exc import IntegrityError
 
+from secrets import FLASK_SECRET_KEY
+
 from config import DATABASE_URL
 
 app = Flask(__name__)
 
 app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL
+app.config['SECRET_KEY'] = FLASK_SECRET_KEY
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_ECHO'] = True
 
