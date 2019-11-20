@@ -195,7 +195,7 @@ def add_cafe():
     """Handle add_cafe form.
     Only logged-in admin users can add/edit cafes."""
 
-    if g.user or not g.user.admin:
+    if not g.user or not g.user.admin:
         flash("Only admins can add cafes.", "danger")
         return redirect("/login")
 
